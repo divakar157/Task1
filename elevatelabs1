@@ -1,0 +1,40 @@
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder,StandardScaler
+import matplotlib.pyplot as plt
+df = pd.read_csv("Titanic-Dataset.csv")
+df.info()
+df.isnull().sum()
+df["Age"] = df["Age"].fillna(df["Age"].mean())
+df.drop(columns=["Cabin"], inplace=True)
+df["Embarked"] = df["Embarked"].fillna(df["Embarked"].mode()[0])
+print(df.info())
+SS = StandardScaler()
+num_cols = df.select_dtypes(include=["int64", "float64"]).columns
+df[num_cols] = SS.fit_transform(df[num_cols])
+LE= LabelEncoder()
+cat_val = df.select_dtypes(include="object").columns
+for col in cat_val:
+    df[col]=LE.fit_transform(df[col])
+
+#ploting outliers
+df[num_cols].boxplot(figsize=(12,6))
+plt.title('Box Plot of All Numeric Columns before fixing')
+plt.xticks (rotation=45)
+plt.tight_layout()
+plt.show()
+
+#  fixing outliers
+for col in num_cols:
+    Q1 = df[col].quantile(0.25)
+    Q3 = df[col].quantile(0.75)
+    IQR = Q3 - Q1
+    lower_range = Q1 - (1.5 * IQR) 
+    upper_range = Q3 +( 1.5 * IQR)
+    df = df [(df [col] >= lower_range) & (df [col] <= upper_range)]
+
+# plot after fixxing outliers  
+df[num_cols].boxplot(figsize=(12,6))
+plt.title('Box Plot of All Numeric Columns after fixing')
+plt.xticks (rotation=45)
+plt.tight_layout()
+plt.show()
